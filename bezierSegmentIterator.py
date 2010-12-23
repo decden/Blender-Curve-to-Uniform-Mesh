@@ -19,7 +19,7 @@
 import bpy
 import mathutils
 from mathutils import Vector
-from blender_curve_to_mesh.BezierCurve import *
+from blender_curve_to_mesh.bezierCurve import *
 
 class BezierSegmentIterator:
 

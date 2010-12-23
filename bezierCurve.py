@@ -19,7 +19,7 @@
 import bpy
 import mathutils
 from mathutils import Vector
-from blender_curve_to_mesh.BezierSegmentIterator import *
+from blender_curve_to_mesh.bezierSegmentIterator import *
 from math import *
 
 class BezierCurve:
@@ -71,11 +71,9 @@ class BezierCurve:
 
 			count = round(iterator.computeLength(firstPassResolution) * density)
 			count = max(1, count)
-			print("count = " + str(count))
 
 			for j in range(0, count):
 				t = float(j) / count
-				print("t = " + str(t))
 				points.append(iterator.pointAt(t))
 
 			if not iterator.next():
@@ -95,7 +93,6 @@ class BezierCurve:
 
 			count = round(it.computeLength(firstPassResolution) * density)
 			count = max(1, count)
-			print("count = " + str(count))
 
 			# We have to include also the last vertex (as it is
 			# offsetted anyway!
@@ -108,31 +105,41 @@ class BezierCurve:
 				p1 = it.pointAt(1) + it.normalAt(1) * offset
 				p2 = itN.pointAt(0) + itN.normalAt(0) * offset
 				p1 = it.pointAt(1) + it.normalAt(1) * offset
+			# As of now this option is disabled, but it could be added
+			# to the ui later
 			if(False): # use straight segments to connect the vertices
 				# Calculate intersection between the offsetted tangents of two adiacent points,
 				# and add that point
-				#v1 = it.tangentAt(1)
-				#v2 = itN.tangentAt(0)
-				#pn = (LineLineIntersect(p1, p1 + v1, p2, p2 + v2))
-				#if pn != None:
-				#	points.append(p1)
+				v1 = it.tangentAt(1)
+				v2 = itN.tangentAt(0)
+				pn = (LineLineIntersect(p1, p1 + v1, p2, p2 + v2))
+				if pn != None:
+					points.append(p1)
 				pass
 			else: # use arcs to connect the vertices
+				# get both the normals at the end of each two segments
+				# The ark should be between those two, and offsetted, by
+				# the amount specified by offset
 				v1 = it.normalAt(1)
 				v2 = itN.normalAt(0)
-				#alpha = acos(v2.dot(v1))
+				# Calculate the angles in radiants of both segments
+				# then calculate the difference between them
 				alpha = GetAngle(v1)
 				beta = GetAngle(v2)
 				delta = beta - alpha
-				# Normalize the delta
+				# Normalize the delta, such that it lies between [-pi, pi]
 				if(delta > pi):
 					delta -= 2 * pi
 				if(delta < -pi):
 					delta += 2 * pi
+				# Make sure that only the appropriate angles, are rounded off
+				# That is, if offset < 0  >>>  delta in [0,   pi]
+				#          if offset > 0  >>>  delta in [-pi,  0]
 				if((-delta > -pi and -delta < 0 and offset > 0) or (delta > -pi and delta < 0 and offset < 0)): # in this case flip the delta
 					center = it.pointAt(1)
 					count = round(abs(delta * offset * density))
-					count = max(2, count)
+					count = max(1, count)
+					print("count = " + str(count))
 					for i in range(1, count):
 						points.append(Vector((cos(alpha + delta * i / float(count)), sin(alpha + delta * i / float(count)), 0)) * offset + center)
 
@@ -140,6 +147,18 @@ class BezierCurve:
 				break
 			itN.next()
 		return points
+
+# This function creates a new BezierCurve, based on a blender bpy
+# curve object
+def fromBlenderSpline(spline):
+	bezier = BezierCurve()
+	bezier.controlPoints = []
+	for bp in spline.bezier_points:
+		bezier.appendSegment(bp.handle_left, bp.co, bp.handle_right)
+	# Fix control point order
+	bezier.controlPoints.append(bezier.controlPoints[0])
+	bezier.controlPoints.pop(0)
+	return bezier
 
 def LineLineIntersect (p1, p2, p3, p4):
 	# based on Paul Bourke's Shortest Line Between 2 lines

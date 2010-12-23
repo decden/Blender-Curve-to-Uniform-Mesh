@@ -18,11 +18,11 @@
 
 try:
     init_data
-    reload(BezierCurve)
-    reload(BezierSegmentIterator)
+    reload(bezierCurve)
+    reload(bezierSegmentIterator)
 except:
-    from blender_curve_to_mesh import BezierCurve
-    from blender_curve_to_mesh import BezierSegmentIterator
+    from blender_curve_to_mesh import bezierCurve
+    from blender_curve_to_mesh import bezierSegmentIterator
 
 init_data = True
 
@@ -104,13 +104,7 @@ def main(context, obj, options):
         # also test if the curve has one or no points skip it
         if spline.type == 'BEZIER' and len(spline.bezier_points) > 1:
             # Convert blender's bpy bezier class in to my own bezier class
-            bezier = BezierCurve.BezierCurve()
-            bezier.controlPoints = [] # Shouldn't this reset automaticly by calling the constructor???
-            for bp in spline.bezier_points:
-                bezier.appendSegment(bp.handle_left, bp.co, bp.handle_right)
-            bezier.controlPoints.append(bezier.controlPoints[0])
-            bezier.controlPoints.pop(0)
-
+            bezier = bezierCurve.fromBlenderSpline(spline)
             # Sample the curve uniformly and store the points in ip
             ip = None
             if offset == 0.0:
