@@ -129,13 +129,12 @@ class BezierCurve:
 					delta -= 2 * pi
 				if(delta < -pi):
 					delta += 2 * pi
-				print(">>>alpha = " + str(alpha/pi*180))
-				print(">>>beta  = " + str(beta/pi*180))
-				print(">>>delta = " + str(delta/pi*180))
-				if(True or delta > -pi and delta < 0): # in this case flip the delta
+				if((-delta > -pi and -delta < 0 and offset > 0) or (delta > -pi and delta < 0 and offset < 0)): # in this case flip the delta
 					center = it.pointAt(1)
-					for i in range(1,10):
-						points.append(Vector((cos(alpha + delta * i / 10), sin(alpha + delta * i / 10), 0)) * offset + center)
+					count = round(abs(delta * offset * density))
+					count = max(2, count)
+					for i in range(1, count):
+						points.append(Vector((cos(alpha + delta * i / float(count)), sin(alpha + delta * i / float(count)), 0)) * offset + center)
 
 			if not it.next():
 				break
