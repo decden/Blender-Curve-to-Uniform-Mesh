@@ -79,12 +79,16 @@ class BezierCurve:
 			if not iterator.next():
 				break
 
-		return points
+		return [points, [True] * len(points)]
 
 	# Turns the offsetted bezier curve into a list of coordinates
 	# Which can easly be transformed into an edge loop
 	def toOfsettedPointCloud(self, offset, firstPassResolution, density):
+		print("starting conversion...")
+		# This array contains just a raw list of points in the polygon
 		points = []
+		# For each edge, this array stores, whether or not, the edge is valid
+		edge_valid = []
 
 		it = self.getIterator(0)
 		itN = self.getIterator(1)
@@ -101,12 +105,13 @@ class BezierCurve:
 				co = it.pointAt(t)
 				no = it.normalAt(t)
 				points.append(co + (no * offset))
+				edge_valid.append(True)
 
 				p1 = it.pointAt(1) + it.normalAt(1) * offset
 				p2 = itN.pointAt(0) + itN.normalAt(0) * offset
 				p1 = it.pointAt(1) + it.normalAt(1) * offset
 			# As of now this option is disabled, but it could be added
-			# to the ui later
+			# to the ui later. Warning!: this code might not work!
 			if(False): # use straight segments to connect the vertices
 				# Calculate intersection between the offsetted tangents of two adiacent points,
 				# and add that point
@@ -115,6 +120,7 @@ class BezierCurve:
 				pn = (LineLineIntersect(p1, p1 + v1, p2, p2 + v2))
 				if pn != None:
 					points.append(p1)
+					edge_valid.append(True) # FIXME: add validity check here!
 				pass
 			else: # use arcs to connect the vertices
 				# get both the normals at the end of each two segments
@@ -139,14 +145,18 @@ class BezierCurve:
 					center = it.pointAt(1)
 					count = round(abs(delta * offset * density))
 					count = max(1, count)
-					print("count = " + str(count))
 					for i in range(1, count):
 						points.append(Vector((cos(alpha + delta * i / float(count)), sin(alpha + delta * i / float(count)), 0)) * offset + center)
-
+						edge_valid.append(True)
+				else:
+					# Set the previous edge as invalid
+					edge_valid[-1] = False
+					print("setting one edge as invalid")
 			if not it.next():
 				break
 			itN.next()
-		return points
+
+		return [points, edge_valid]
 
 # This function creates a new BezierCurve, based on a blender bpy
 # curve object

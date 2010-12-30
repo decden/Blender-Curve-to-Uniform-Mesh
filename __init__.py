@@ -52,27 +52,32 @@ from mathutils import Vector
 # The destination array is defined as follows
 # - Array of loops
 #   - [verts, faces]
-# The loop parameter is simply a set of points
-# describing a polygon
-def insertMeshLoop(loop, destination):
+# The loop_coll parameter is a list of a set of points
+# describing a polygon and the validity of each edge
+def insertMeshLoop(loop_coll, destination):
 	# Prepare the data to be added to blender
+
+	# Extract the lists contained in loop_coll
+	loop = loop_coll[0]
+	valid_edges = loop_coll[1]
 
 	# Find the first free vertex slot, it coincides with the
 	# count of vertices
 	firstVertexId = 0
 	for l in destination:
-		firstVertexId += len(l[1])
+		firstVertexId += len(l[0])
 	curVertex = firstVertexId
 	verts = []
 	faces = []
-	for point in loop:
+	for i, point in enumerate(loop):
 		verts.append([point.x, point.y, point.z])
 		# Small trick to create edges, just make a face, containing
 		# two times the same vertex
-		faces.append([curVertex, curVertex + 1, curVertex])
+		if valid_edges[i]:
+			faces.append([curVertex, curVertex + 1, curVertex])
 		curVertex+=1
-	# Fix the mesh, closing the last edge
-	if len(loop) != 0: faces[len(faces) - 1][1] = firstVertexId
+	# Fix the mesh, closing the last edge, but only if it is a valid one
+	if len(loop) != 0 and valid_edges[-1]: faces[-1][1] = firstVertexId
 
 	# Append to the destination array
 	destination.append([verts, faces])
@@ -88,7 +93,6 @@ def createMesh(mesh, loops):
 		faces.extend(l[1])
 
 	# Add geometry to mesh object
-	print("Adding geometry: " + str(len(verts)) + " verts and " + str(len(faces)) + " edges")
 	mesh.from_pydata(verts, [], faces)
 	mesh.update()
 
@@ -196,7 +200,6 @@ def main(context, obj, options):
 	#if isFontObject == True:
 	#	scene.objects.unlink(obj)
 
-	#print("________END________\n")
 	return
 
 ###########################
@@ -268,7 +271,6 @@ class CURVE_OT_toUniformMesh(bpy.types.Operator):
 
 	## execute
 	def execute(self, context):
-	 #print("------START------")
 
 	 options = [
 			 self.fillMesh,      #0
@@ -286,9 +288,7 @@ class CURVE_OT_toUniformMesh(bpy.types.Operator):
 	 obj = context.active_object
 	 if obj.type == 'MESH':
 		 tempobj = obj
-		 print("---" + str(obj.name))
 		 obj = bpy.context.scene.objects[obj.name[8:]]
-		 print(">>>" + str(obj.name))
 		 bpy.context.scene.objects.active = obj;
 		 bpy.context.scene.objects.unlink(tempobj)
 
@@ -296,7 +296,6 @@ class CURVE_OT_toUniformMesh(bpy.types.Operator):
 
 	 bpy.context.user_preferences.edit.use_global_undo = True
 
-	 #print("-------END-------")
 	 return {'FINISHED'}
 
 	def invoke(self, context, event):
