@@ -16,18 +16,16 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-try:
-	init_data
-	reload(bezierCurve)
-	reload(bezierSegmentIterator)
-except:
-	from blender_curve_to_mesh import bezierCurve
-	from blender_curve_to_mesh import bezierSegmentIterator
+if "bpy" in locals():
+	import imp;
+	imp.reload(bezierCurve)
+	imp.reload(bezierSegmentIterator)
+else:
+	from curve_to_even_mesh import bezierCurve
+	from curve_to_even_mesh import bezierSegmentIterator
 
-init_data = True
-
-bl_addon_info = {
-	"name": "Curve to Uniform Mesh",
+bl_info = {
+	"name": "Curve to even mesh",
 	"author": "Denis Declara",
 	"version": (0, 2),
 	"blender": (2, 5, 3),   # I am not so sure about the compatibility :(
@@ -259,6 +257,7 @@ class CURVE_OT_toUniformMesh(bpy.types.Operator):
 	## Check for curve or text object
 	@classmethod
 	def poll(cls, context):
+	 print("poll")
 	 obj = context.active_object
 	 #if (obj and (obj.type == 'CURVE' or obj.type == 'FONT')):
 	 #    return True
@@ -307,11 +306,11 @@ class CURVE_OT_toUniformMesh(bpy.types.Operator):
 #################################################
 # We don't need any registration!
 def register():
-	pass
+	bpy.utils.register_module(__name__)
 
 # We do not need any registration either!
 def unregister():
-	pass
+	bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
 	register()

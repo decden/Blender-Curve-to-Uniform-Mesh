@@ -4,10 +4,10 @@
 
 0) Download and install blender 2.55
 
-1) Create a folder named "blender_curve_to_mesh" under the "2.55/scripts/addons" folder in your blender data folder.
+1) Create a folder named "curve_to_even_mesh" under the "2.55/scripts/addons" folder in your blender data folder.
 
 2) Copy all three files into the newly created directory
 
-3) Enable the addon "Curve to Uniform Mesh" under the user preferences
+3) Enable the addon "Curve to even mesh" under the user preferences
 
 4) Select a curve, press space and type "Curve to Uniform Mesh"
