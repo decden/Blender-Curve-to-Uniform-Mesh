@@ -165,6 +165,10 @@ def fromBlenderSpline(spline):
 	bezier.controlPoints = []
 	for bp in spline.bezier_points:
 		bezier.appendSegment(bp.handle_left, bp.co, bp.handle_right)
+	# If the curve is not cyclic, make a linear interpolation between vertices
+	if not spline.use_cyclic_u and len(spline.bezier_points) >= 2:
+		bezier.controlPoints[0] = bezier.controlPoints[1] + (bezier.controlPoints[-2] - bezier.controlPoints[1]) * (1/3)
+		bezier.controlPoints[-1] = bezier.controlPoints[1] + (bezier.controlPoints[-2] - bezier.controlPoints[1]) * (2/3)
 	# Fix control point order
 	bezier.controlPoints.append(bezier.controlPoints[0])
 	bezier.controlPoints.pop(0)

@@ -117,6 +117,7 @@ class BezierSegmentIterator:
 	# Returns a length approximation of the curve, based on a
 	# subdivision into streight lines
 	def computeLength(self, segments):
+		print("Segments: " + str(segments))
 		length = 0.0
 		a = self.pointAt(0.0)
 		for i in range(1, segments + 1):
